@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="app-version" content="1.2">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Workout</title>
 <style>
   :root{ --bg:#0f1115; --card:#1a1d24; --card2:#22262f; --line:#2c313c; --txt:#eef1f6; --dim:#9aa3b2; --acc:#7c5cff; --acc2:#9d8cff; --ok:#34c77b; --warn:#ffb020; }
@@ -59,7 +63,7 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.1</span><span class="streak" id="streak"></span></header>
+<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.2</span><span class="streak" id="streak"></span></header>
 <main id="view"></main>
 <nav class="tabs">
   <button data-tab="today">Today</button>
@@ -401,6 +405,29 @@ function renderPlans(){
     else { w.dataset.arm='1'; w.textContent='Tap again to confirm erase'; }
   };
 }
+
+
+const APP_VERSION='1.2';
+(function autoUpdateCheck(){
+  try{
+    if(new URLSearchParams(location.search).get('u')===APP_VERSION) return;
+    fetch('index.html?vc='+Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(t){
+        var m=/name="app-version" content="([0-9.]+)"/.exec(t);
+        if(!m) return;
+        var nv=m[1];
+        var a=APP_VERSION.split('.').map(Number), b=nv.split('.').map(Number);
+        var newer=false;
+        for(var i=0;i<Math.max(a.length,b.length);i++){ var d=(b[i]||0)-(a[i]||0); if(d>0){ newer=true; break; } if(d<0) break; }
+        if(!newer) return;
+        if(sessionStorage.getItem('wa_reload_for')===nv) return;
+        sessionStorage.setItem('wa_reload_for', nv);
+        location.replace(location.pathname+'?u='+nv);
+      })
+      .catch(function(){});
+  }catch(e){}
+})();
 
 render();
 </script>
