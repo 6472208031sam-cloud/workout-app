@@ -3,67 +3,124 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="app-version" content="1.3">
+<meta name="app-version" content="1.4">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Workout</title>
 <style>
-  :root{ --bg:#0f1115; --card:#1a1d24; --card2:#22262f; --line:#2c313c; --txt:#eef1f6; --dim:#9aa3b2; --acc:#7c5cff; --acc2:#9d8cff; --ok:#34c77b; --warn:#ffb020; }
+  :root{
+    --bg:#0b0d12; --bg2:#10131a; --card:#171a22; --card2:#1f232e; --line:#262b37; --line2:#313847;
+    --txt:#f2f4f9; --dim:#9aa3b5; --dim2:#6e7789;
+    --acc:#7c5cff; --acc2:#a58dff; --accsoft:rgba(124,92,255,.16);
+    --ok:#2fbf71; --oksoft:rgba(47,191,113,.14); --warn:#ffb020;
+    --rad:20px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
   *{box-sizing:border-box} html,body{margin:0;padding:0}
-  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding-bottom:84px}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #1b1f2e 0%, var(--bg) 55%) fixed, var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; padding-bottom:96px; font-size:16px;
+  }
   a{color:var(--acc2)}
-  header.top{position:sticky;top:0;z-index:5;background:rgba(15,17,21,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px;display:flex;align-items:center;gap:10px}
-  header.top h1{font-size:19px;margin:0;font-weight:700}
-  .badge{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
-  .streak{margin-left:auto;font-size:13px;color:var(--warn);font-weight:600}
-  main{max-width:640px;margin:0 auto;padding:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
-  .card h2{margin:0 0 4px;font-size:17px} .card h3{margin:0 0 6px;font-size:15px}
-  .dim{color:var(--dim)} .small{font-size:13px} .tiny{font-size:12px}
-  .focus{color:var(--dim);font-size:14px;margin:2px 0 10px}
-  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#fff;background:var(--acc);border-radius:999px;padding:3px 9px;margin-bottom:8px}
-  .pill.grey{background:#3a4050} .pill.green{background:var(--ok)}
-  .bar{height:8px;background:#262b35;border-radius:99px;overflow:hidden;margin:8px 0 4px}
-  .bar>div{height:100%;background:var(--acc);border-radius:99px}
-  .ex{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+  ::selection{background:var(--acc);color:#fff}
+
+  header.top{
+    position:sticky;top:0;z-index:5;
+    background:rgba(11,13,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);padding:14px 18px;
+    display:flex;align-items:center;gap:10px;
+  }
+  header.top h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.3px}
+  .badge{font-size:11px;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .streak{margin-left:auto;font-size:13px;color:var(--warn);font-weight:700;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);padding:5px 11px;border-radius:999px}
+  .streak:empty{display:none}
+
+  main{max-width:640px;margin:0 auto;padding:18px 16px}
+  .card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:var(--rad);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.3px}
+  .card h3{margin:0 0 6px;font-size:16px;font-weight:700}
+  .dim{color:var(--dim)} .small{font-size:13.5px} .tiny{font-size:12px}
+  .focus{color:var(--dim);font-size:14.5px;margin:2px 0 12px;line-height:1.45}
+
+  .pill{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--acc),#6246ea);border-radius:999px;padding:5px 11px;margin-bottom:10px;box-shadow:0 4px 14px rgba(124,92,255,.35)}
+  .pill.grey{background:#333a49;box-shadow:none;color:#c6ccd9}
+  .pill.green{background:linear-gradient(135deg,#35cf7d,#23a866);box-shadow:0 4px 14px rgba(47,191,113,.3)}
+
+  .bar{height:9px;background:#242936;border-radius:99px;overflow:hidden;margin:10px 0 5px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:99px;transition:width .4s ease}
+
+  .ex{display:flex;gap:12px;align-items:flex-start;padding:13px 2px;border-top:1px solid var(--line)}
   .ex:first-of-type{border-top:none}
-  .ex input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc);flex:none;margin-top:1px}
-  .ex .nm{font-weight:600;font-size:15px}
-  .ex .ds{color:var(--dim);font-size:13px;margin-top:1px}
-  .ex .cue{color:var(--dim);font-size:13px;margin-top:4px;line-height:1.45}
+  .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accsoft);color:var(--acc2);font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;border:1px solid rgba(124,92,255,.35)}
+  .ex input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc);flex:none;margin-top:1px;cursor:pointer}
+  .ex .nm{font-weight:650;font-size:15.5px;line-height:1.3}
+  .ex .ds{color:var(--dim);font-size:13.5px;margin-top:2px;line-height:1.4}
+  .ex .cue{color:var(--dim);font-size:13.5px;margin-top:5px;line-height:1.5}
   .exname a{color:var(--txt);text-decoration:none;border-bottom:2px solid var(--acc)}
-  .play{font-size:11px;background:var(--acc);color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px;font-weight:700}
-  button{font:inherit;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
-  .btn{background:var(--acc);color:#fff;width:100%}
-  .btn.secondary{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
-  .btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
-  .btn.okbtn{background:var(--ok);color:#06280f}
-  .btn:disabled{opacity:.45}
+  .play{font-size:10.5px;background:var(--acc);color:#fff;border-radius:999px;padding:2.5px 8px;margin-left:7px;vertical-align:2.5px;font-weight:800;letter-spacing:.4px;white-space:nowrap}
+
+  button{font:inherit;border:none;border-radius:14px;padding:14px 18px;font-weight:750;cursor:pointer;transition:transform .05s ease, filter .15s ease}
+  button:active{transform:scale(.985)}
+  .btn{background:linear-gradient(135deg,var(--acc),#6246ea);color:#fff;width:100%;box-shadow:0 8px 20px rgba(124,92,255,.28);font-size:15.5px}
+  .btn.secondary{background:var(--card2);color:var(--txt);border:1px solid var(--line2);box-shadow:none}
+  .btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line2);box-shadow:none}
+  .btn.okbtn{background:linear-gradient(135deg,#35cf7d,#23a866);color:#04150b;box-shadow:0 8px 20px rgba(47,191,113,.25)}
+  .btn:disabled{opacity:.5;box-shadow:none}
   .row{display:flex;gap:10px} .row>*{flex:1}
-  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(18,20,26,.97);border-top:1px solid var(--line);display:flex}
-  nav.tabs button{flex:1;background:none;color:var(--dim);border-radius:0;padding:12px 4px 16px;font-size:13px}
-  nav.tabs button.on{color:#fff;box-shadow:inset 0 2px 0 var(--acc)}
-  .dayrow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(13,15,21,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{flex:1;background:none;color:var(--dim2);border-radius:0;padding:13px 4px 15px;font-size:13px;font-weight:650}
+  nav.tabs button.on{color:#fff;box-shadow:inset 0 2.5px 0 var(--acc)}
+
+  .dayrow{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px;align-items:center}
   .dayrow:first-of-type{border-top:none}
-  details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
-  summary{cursor:pointer;font-weight:700;font-size:15px}
+
+  details{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:700;font-size:15.5px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'▾';float:right;color:var(--dim2)}
+  details[open ]>summary::after{content:'▴'}
   details .inner{padding-top:8px}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .chip{border:1px solid var(--line);background:var(--card2);color:var(--dim);border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer}
+  details details{margin:8px 0;background:var(--bg2)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1px solid var(--line2);background:var(--card2);color:var(--dim);border-radius:999px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:14px}
   .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-  .planpick{border:2px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;background:var(--card)}
+
+  .planpick{border:2px solid var(--line);border-radius:var(--rad);padding:20px;margin-bottom:14px;background:linear-gradient(180deg,var(--card2),var(--card));box-shadow:var(--shadow)}
   .planpick.active{border-color:var(--acc)}
-  #player{position:fixed;inset:0;z-index:20;background:var(--bg);display:none;flex-direction:column;padding:20px 18px 28px;max-width:640px;margin:0 auto}
+  .planpick h3{margin:0 0 4px;font-size:17px}
+
+  .note{background:linear-gradient(135deg,rgba(124,92,255,.16),rgba(124,92,255,.07));border:1px solid rgba(124,92,255,.4);border-radius:14px;padding:12px 14px;font-size:13.5px;color:#d9d2ff;margin-bottom:14px;line-height:1.5}
+
+  /* ----- Guided player ----- */
+  #player{position:fixed;inset:0;z-index:20;background:radial-gradient(900px 500px at 50% -10%, #1d2133 0%, var(--bg) 60%);display:none;flex-direction:column;padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
   #player.open{display:flex}
-  #player .big{font-size:26px;font-weight:800;line-height:1.25;margin:8px 0}
-  #timer{font-size:56px;font-weight:800;text-align:center;margin:18px 0;font-variant-numeric:tabular-nums}
-  .dots{text-align:center;color:var(--dim);letter-spacing:3px;margin:10px 0}
-  .note{background:#241f3d;border:1px solid #3d3466;border-radius:12px;padding:10px 12px;font-size:13px;color:#cfc6ff;margin-bottom:12px}
+  #player .prow{display:flex;align-items:center;gap:10px;flex:none}
+  #pStep{margin-bottom:0}
+  #pExit{margin-left:auto;flex:none;padding:10px 16px;border-radius:999px}
+  .stage{margin-top:22px;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:24px;padding:26px 22px;box-shadow:var(--shadow)}
+  #player .big{font-size:31px;font-weight:850;line-height:1.2;margin:6px 0 4px;letter-spacing:-.5px}
+  #pDose{display:inline-block;margin-top:8px;background:var(--accsoft);border:1px solid rgba(124,92,255,.4);color:#d9d2ff;font-weight:700;font-size:14.5px;padding:7px 13px;border-radius:999px}
+  #pDose:empty{display:none}
+  #pCue{color:var(--dim);line-height:1.6;font-size:15px;margin-top:14px}
+  #pCue:empty{display:none}
+  #pVideo{margin-top:18px}
+  #pVideo:empty{display:none}
+  .videobtn{display:flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:#111;text-decoration:none;font-weight:800;border-radius:14px;padding:14px 18px;font-size:15.5px;box-shadow:0 8px 20px rgba(255,255,255,.12)}
+  #timer{font-size:64px;font-weight:850;text-align:center;margin:20px 0 6px;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  #pTimerBtn{margin-top:10px}
+  .segs{display:flex;gap:5px;margin:22px 2px 4px}
+  .segs span{flex:1;height:6px;border-radius:99px;background:#2a2f3d}
+  .segs span.done{background:var(--acc2)}
+  .segs span.now{background:var(--acc);box-shadow:0 0 0 3px var(--accsoft)}
+  .pactions{flex:none;margin-top:14px}
 </style>
 </head>
 <body>
-<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.3</span><span class="streak" id="streak"></span></header>
+<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.4</span><span class="streak" id="streak"></span></header>
 <main id="view"></main>
 <nav class="tabs">
   <button data-tab="today">Today</button>
@@ -73,20 +130,24 @@
 </nav>
 
 <div id="player">
-  <div class="row" style="flex:none"><span class="pill" id="pStep"></span><button class="ghost" id="pExit" style="flex:none;padding:8px 14px">✕ Exit</button></div>
-  <div class="big" id="pName"></div>
-  <div class="focus" id="pDose"></div>
-  <div class="cue" id="pCue" style="color:var(--dim);line-height:1.5"></div>
-  <div id="pVideo" style="margin:12px 0"></div>
-  <div id="timer" style="display:none">0:00</div>
-  <button class="btn secondary" id="pTimerBtn" style="display:none;margin-bottom:10px">▶ Start timer</button>
-  <div class="dots" id="pDots"></div>
-  <div style="flex:1"></div>
-  <div class="row">
-    <button class="btn ghost" id="pPrev">← Prev</button>
-    <button class="btn" id="pNext">Done · Next →</button>
+  <div class="prow"><span class="pill" id="pStep"></span><button class="btn ghost" id="pExit">✕ Exit</button></div>
+  <div class="stage">
+    <div class="big" id="pName"></div>
+    <div id="pDose"></div>
+    <div id="pCue"></div>
+    <div id="pVideo"></div>
+    <div id="timer" style="display:none">0:00</div>
+    <button class="btn secondary" id="pTimerBtn" style="display:none">▶ Start timer</button>
   </div>
-  <button class="btn okbtn" id="pFinish" style="display:none;margin-top:10px">✓ Finish workout</button>
+  <div class="segs" id="pDots"></div>
+  <div style="flex:1"></div>
+  <div class="pactions">
+    <div class="row">
+      <button class="btn ghost" id="pPrev">← Prev</button>
+      <button class="btn" id="pNext">Done · Next →</button>
+    </div>
+    <button class="btn okbtn" id="pFinish" style="display:none;margin-top:10px;width:100%">✓ Finish workout</button>
+  </div>
 </div>
 
 <script>
@@ -175,12 +236,12 @@ function renderPlayer(){
   document.getElementById('pName').innerHTML = exName(e);
   document.getElementById('pDose').textContent = e.dose||'';
   document.getElementById('pCue').textContent = e.cue||'';
-  document.getElementById('pVideo').innerHTML = e.videoUrl ? '<a href="'+e.videoUrl+'" target="_blank" rel="noopener" style="font-weight:700">▶ Watch demo video</a>' : '';
+  document.getElementById('pVideo').innerHTML = e.videoUrl ? '<a class="videobtn" href="'+e.videoUrl+'" target="_blank" rel="noopener">▶ Watch demo video</a>' : '';
   const hs=holdSecs(e); const t=document.getElementById('timer'), tb=document.getElementById('pTimerBtn');
   stopTimer();
   if(hs){ t.style.display='block'; tb.style.display='block'; timerLeft=hs; t.textContent=fmtT(hs); }
   else { t.style.display='none'; tb.style.display='none'; }
-  document.getElementById('pDots').textContent = P.exercises.map((_,j)=> j===P.i?'●':'○').join(' ');
+  document.getElementById('pDots').innerHTML = P.exercises.map((_,j)=>'<span class="'+(j<P.i?'done':(j===P.i?'now':''))+'"></span>').join('');
   document.getElementById('pPrev').disabled = P.i===0;
   const last = P.i===P.exercises.length-1;
   document.getElementById('pNext').style.display = last?'none':'block';
@@ -357,7 +418,7 @@ function renderProgram(){
   if(S.plan==='core'){
     for(const sess of CORE.sessions){
       h+='<details'+(CORE_ORDER.indexOf(sess.key)===0?' open':'')+'><summary>'+esc(sess.title)+' <span class="dim small">· '+(sess.track==='core'?'Core & Abs':'Posture & Height')+' · ~'+sess.approxMinutes+' min</span></summary><div class="inner"><p class="focus">'+esc(sess.focus)+'</p>'
-        + sess.exercises.map(e=>'<div class="ex"><div><div class="nm">'+esc(e.name)+'</div><div class="ds">'+esc(e.dose)+'</div><div class="cue">'+esc(e.cue)+'</div></div></div>').join('')+'</div></details>';
+        + sess.exercises.map((e,i)=>'<div class="ex"><span class="num">'+(i+1)+'</span><div><div class="nm">'+esc(e.name)+'</div><div class="ds">'+esc(e.dose)+'</div><div class="cue">'+esc(e.cue)+'</div></div></div>').join('')+'</div></details>';
     }
     h+='<p class="tiny dim">Posture work supports standing at your full height — no workout can guarantee growing taller.</p>';
   } else {
@@ -369,7 +430,7 @@ function renderProgram(){
         for(const dy of wk.days){
           const key='p'+ph.phase+'w'+wk.week+'d'+dy.day;
           h+='<details><summary>Day '+dy.day+' — '+esc(dy.title)+(S.btrDone[key]?' ✓':'')+'</summary><div class="inner">'
-            + dy.exercises.map(e=>'<div class="ex"><div><div class="nm">'+exName(e)+'</div><div class="ds">'+esc(e.dose||'')+'</div></div></div>').join('')+'</div></details>';
+            + dy.exercises.map((e,i)=>'<div class="ex"><span class="num">'+(i+1)+'</span><div><div class="nm">'+exName(e)+'</div><div class="ds">'+esc(e.dose||'')+'</div></div></div>').join('')+'</div></details>';
         }
         h+='</div></details>';
       }
@@ -407,7 +468,7 @@ function renderPlans(){
 }
 
 
-const APP_VERSION='1.3';
+const APP_VERSION='1.4';
 (function autoUpdateCheck(){
   try{
     if(new URLSearchParams(location.search).get('u')===APP_VERSION) return;
