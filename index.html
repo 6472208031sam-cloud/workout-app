@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="app-version" content="1.2">
+<meta name="app-version" content="1.3">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -63,7 +63,7 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.2</span><span class="streak" id="streak"></span></header>
+<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.3</span><span class="streak" id="streak"></span></header>
 <main id="view"></main>
 <nav class="tabs">
   <button data-tab="today">Today</button>
@@ -272,7 +272,7 @@ function renderToday(){
     return;
   }
   const sessKey='btr-'+cur.key;
-  const posIdx = seq.indexOf(cur)>=0 ? seq.indexOf(cur)+1 : dn;
+  const posIdx = seq.findIndex(d=>d.key===cur.key)>=0 ? seq.findIndex(d=>d.key===cur.key)+1 : dn;
   h+='<div class="card">'
     + (showingDone? '<span class="pill green">✓ Completed today</span>' : '<span class="pill">Beyond the Rim</span>')
     + '<h2>'+esc(cur.title)+'</h2><p class="focus">'+prettyDay(cur)+' · Day '+posIdx+' of '+seq.length+'</p>'
@@ -338,7 +338,7 @@ function renderWeek(){
     h+='</div>';
   } else {
     const seq=btrSeq(); const cur=btrCurrent();
-    const curIdx = cur? seq.indexOf(cur) : seq.length;
+    const curIdx = cur? seq.findIndex(d=>d.key===cur.key) : seq.length;
     const wkStart = Math.floor(curIdx/7)*7;
     h+='<div class="card"><h3>'+(cur? prettyDay(cur).split('·')[0].trim()+' · Week '+cur.week : 'Program complete')+'</h3>';
     for(let i=wkStart;i<Math.min(wkStart+7, seq.length);i++){
@@ -407,7 +407,7 @@ function renderPlans(){
 }
 
 
-const APP_VERSION='1.2';
+const APP_VERSION='1.3';
 (function autoUpdateCheck(){
   try{
     if(new URLSearchParams(location.search).get('u')===APP_VERSION) return;
