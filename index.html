@@ -59,7 +59,7 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.0</span><span class="streak" id="streak"></span></header>
+<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.1</span><span class="streak" id="streak"></span></header>
 <main id="view"></main>
 <nav class="tabs">
   <button data-tab="today">Today</button>
@@ -217,6 +217,13 @@ function bindChecks(iso, sessKey){
   view.querySelectorAll('[data-ck]').forEach(cb=> cb.onchange=()=>{ setCheck(iso, sessKey, parseInt(cb.dataset.ck), cb.checked); });
 }
 
+function btrDayByKey(key){
+  for(const ph of BTR.phases) for(const wk of ph.weeks) for(const dy of wk.days)
+    if('p'+ph.phase+'w'+wk.week+'d'+dy.day===key)
+      return { key, phase:ph.phase, phaseLabel:ph.label, week:wk.week, day:dy.day, title:dy.title, exercises:dy.exercises };
+  return null;
+}
+
 function renderToday(){
   const iso=todayISO();
   let h='';
@@ -236,46 +243,56 @@ function renderToday(){
         + resetCard(iso)
         + '</div>';
     }
-  } else {
-    const cur=btrCurrent(); const seq=btrSeq(); const dn=btrDoneCount();
-    h+='<div class="note">Beyond the Rim · progress saves on this device only. Days are done in order — extra rest days are fine, you pick up where you left off.</div>';
-    if(!cur){
-      h+='<div class="card"><span class="pill green">Program complete 🎉</span><h2>You finished Beyond the Rim!</h2><p class="focus">All '+seq.length+' days done. You can restart from the Plans tab.</p></div>';
-    } else {
-      const sessKey='btr-'+cur.key; const doneToday = S.done[iso]==='btr';
-      h+='<div class="card"><span class="pill">Beyond the Rim</span><h2>'+esc(cur.title)+'</h2><p class="focus">'+prettyDay(cur)+' · Day '+(dn+1)+' of '+seq.length+'</p>'
-        + '<div class="bar"><div style="width:'+Math.round(dn/seq.length*100)+'%"></div></div><div class="tiny dim">'+dn+' of '+seq.length+' days complete</div>'
-        + '<p class="small dim" style="margin-top:8px">Tap an exercise name marked ▶ VIDEO to watch its demonstration video from the book.</p>'
-        + exerciseList(iso, sessKey, cur.exercises, false)
-        + '<div style="height:10px"></div>'
-        + '<button class="btn" id="startBtn">▶ Start workout (guided)</button><div style="height:8px"></div>'
-        + (doneToday? '<button class="btn okbtn" disabled>✓ Completed today</button>' : '<button class="btn okbtn" id="completeBtn">✓ Mark day complete</button>')
-        + resetCard(iso)
-        + '</div>';
-    }
-  }
-  view.innerHTML=h;
-  // bindings
-  const iso2=todayISO();
-  if(S.plan==='core'){
-    const sess=coreSessionFor(iso2);
-    if(sess){
-      bindChecks(iso2, sess.key);
-      document.getElementById('startBtn').onclick=()=> openPlayer(sess.key, sess.title, sess.exercises, ()=>completeCore());
+    view.innerHTML=h;
+    const sess2=coreSessionFor(iso);
+    if(sess2){
+      bindChecks(iso, sess2.key);
+      document.getElementById('startBtn').onclick=()=> openPlayer(sess2.key, sess2.title, sess2.exercises, ()=>completeCore());
       const cb=document.getElementById('completeBtn'); if(cb) cb.onclick=()=>{ completeCore(); render(); };
-      bindReset(iso2);
+      bindReset(iso);
     }
-  } else {
-    const cur=btrCurrent();
-    if(cur){
-      const sessKey='btr-'+cur.key;
-      bindChecks(iso2, sessKey);
-      document.getElementById('startBtn').onclick=()=> openPlayer(sessKey, cur.title, cur.exercises, ()=>completeBtr());
-      const cb=document.getElementById('completeBtn'); if(cb) cb.onclick=()=>{ completeBtr(); render(); };
-      bindReset(iso2);
-    }
+    return;
   }
+  // Beyond the Rim
+  const seq=btrSeq(); const dn=btrDoneCount(); const nxt=btrCurrent();
+  const doneTodayKey=Object.keys(S.btrDone).find(k=>S.btrDone[k]===iso);
+  let cur=nxt, showingDone=false;
+  if(doneTodayKey && S.btrSkipAhead!==iso){
+    const dd=btrDayByKey(doneTodayKey);
+    if(dd && (!nxt || dd.key!==nxt.key)){ cur=dd; showingDone=true; }
+  }
+  h+='<div class="note">Beyond the Rim · progress saves on this device only. Days are done in order — extra rest days are fine, you pick up where you left off.</div>';
+  if(!cur){
+    h+='<div class="card"><span class="pill green">Program complete 🎉</span><h2>You finished Beyond the Rim!</h2><p class="focus">All '+seq.length+' days done. You can restart from the Plans tab.</p></div>';
+    view.innerHTML=h;
+    return;
+  }
+  const sessKey='btr-'+cur.key;
+  const posIdx = seq.indexOf(cur)>=0 ? seq.indexOf(cur)+1 : dn;
+  h+='<div class="card">'
+    + (showingDone? '<span class="pill green">✓ Completed today</span>' : '<span class="pill">Beyond the Rim</span>')
+    + '<h2>'+esc(cur.title)+'</h2><p class="focus">'+prettyDay(cur)+' · Day '+posIdx+' of '+seq.length+'</p>'
+    + '<div class="bar"><div style="width:'+Math.round(dn/seq.length*100)+'%"></div></div><div class="tiny dim">'+dn+' of '+seq.length+' days complete</div>'
+    + (showingDone? '<p class="small" style="color:var(--ok);font-weight:700;margin-top:8px">✓ You finished this day today — every exercise below is checked off. '+(nxt? 'Next up: '+prettyDay(nxt)+'.' : '')+'</p>' : '')
+    + '<p class="small dim" style="margin-top:8px">Tap an exercise name marked ▶ VIDEO to watch its demonstration video from the book.</p>'
+    + exerciseList(iso, sessKey, cur.exercises, false)
+    + '<div style="height:10px"></div>';
+  if(showingDone){
+    if(nxt) h+='<button class="btn" id="nextDayBtn">Start next day now →</button><div style="height:8px"></div>';
+    h+='<button class="btn okbtn" disabled>✓ Completed today</button>';
+  } else {
+    h+='<button class="btn" id="startBtn">▶ Start workout (guided)</button><div style="height:8px"></div>'
+      + '<button class="btn okbtn" id="completeBtn">✓ Mark day complete</button>';
+  }
+  h+= resetCard(iso) + '</div>';
+  view.innerHTML=h;
+  bindChecks(iso, sessKey);
+  const sb=document.getElementById('startBtn'); if(sb) sb.onclick=()=> openPlayer(sessKey, cur.title, cur.exercises, ()=>completeBtr());
+  const cb=document.getElementById('completeBtn'); if(cb) cb.onclick=()=>{ completeBtr(); render(); };
+  const nb=document.getElementById('nextDayBtn'); if(nb) nb.onclick=()=>{ S.btrSkipAhead=iso; save(); render(); };
+  bindReset(iso);
 }
+
 function resetCard(iso){
   const has = Object.keys(S.checks).some(k=>k.startsWith(iso+'|') && (S.checks[k]||[]).length) || S.done[iso];
   if(!has) return '';
@@ -291,6 +308,7 @@ function bindReset(iso){
 function doResetDay(iso){
   Object.keys(S.checks).forEach(k=>{ if(k.startsWith(iso+'|')) delete S.checks[k]; });
   if(S.done[iso]==='btr'){ const cur=Object.keys(S.btrDone).find(k=>S.btrDone[k]===iso); if(cur) delete S.btrDone[cur]; }
+  if(S.btrSkipAhead===iso) delete S.btrSkipAhead;
   delete S.done[iso]; save();
 }
 function completeCore(){
