@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="app-version" content="1.4">
+<meta name="app-version" content="1.5">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -120,7 +120,7 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.4</span><span class="streak" id="streak"></span></header>
+<header class="top"><h1>🏋️ Workout</h1><span class="badge">hosted v1.5</span><span class="streak" id="streak"></span></header>
 <main id="view"></main>
 <nav class="tabs">
   <button data-tab="today">Today</button>
@@ -289,6 +289,44 @@ function btrDayByKey(key){
   return null;
 }
 
+function durSecs(seg){
+  const m=/(\d+)(?:\s*-\s*(\d+))?\s*(minutes?|min|seconds?|sec)\b/i.exec(seg);
+  if(!m) return null;
+  const v=m[2]? (parseFloat(m[1])+parseFloat(m[2]))/2 : parseFloat(m[1]);
+  return m[3].toLowerCase().indexOf('min')===0 ? v*60 : v;
+}
+function exSecs(name, dose){
+  if(!dose) return 180;
+  const low=(name+' '+dose).toLowerCase();
+  const segs=dose.split('·').map(s=>s.trim());
+  const setsM=/(\d+)\s*sets?\b/i.exec(dose); const sets=setsM? parseInt(setsM[1]) : 1;
+  const repsM=/(\d+)\s*reps?\b/i.exec(dose); const reps=repsM? parseInt(repsM[1]) : null;
+  const perSide=/each (leg|side)|per side/i.test(dose)? 2:1;
+  const main=segs[0]||dose; const md=durSecs(main);
+  let work=0, rest=0;
+  if(low.indexOf('pyramid')>=0) work=55*2.5;
+  else if(md!==null && /(minute|second)/i.test(main)) work=(setsM && /sets?\s+of/i.test(main))? sets*md : md;
+  else if(reps!==null) work= main.toLowerCase().indexOf('yards')>=0 ? sets*reps*0.8 : sets*reps*3*perSide;
+  else if(main.toLowerCase().indexOf('round')>=0){
+    if(low.indexOf('core workout')>=0) work=600;
+    else if(low.indexOf('stretching')>=0 || low.indexOf('mobility')>=0) work=360;
+    else if(low.indexOf('breathing')>=0) work=180;
+    else work=300;
+  }
+  else work=120;
+  for(let k=1;k<segs.length;k++){
+    const seg=segs[k];
+    if(!/rest/i.test(seg)) continue;
+    const rd=durSecs(seg); if(rd===null) continue;
+    if(seg.toLowerCase().indexOf('between jumps')>=0 && reps!==null) rest+=rd*(reps-1)*sets;
+    else if(seg.toLowerCase().indexOf('between')>=0) rest+=rd*Math.max(sets-1,1);
+    else rest+=rd;
+  }
+  return work+rest+20;
+}
+function dayMinutes(day){ return Math.round(day.exercises.reduce((a,e)=>a+exSecs(e.name, e.dose||''),0)/60); }
+function fmtMins(m){ if(m<60) return '~'+m+' min'; const h=Math.floor(m/60), r=m%60; return '~'+h+' h'+(r? ' '+r+' min' : ''); }
+
 function renderToday(){
   const iso=todayISO();
   let h='';
@@ -336,7 +374,7 @@ function renderToday(){
   const posIdx = seq.findIndex(d=>d.key===cur.key)>=0 ? seq.findIndex(d=>d.key===cur.key)+1 : dn;
   h+='<div class="card">'
     + (showingDone? '<span class="pill green">✓ Completed today</span>' : '<span class="pill">Beyond the Rim</span>')
-    + '<h2>'+esc(cur.title)+'</h2><p class="focus">'+prettyDay(cur)+' · Day '+posIdx+' of '+seq.length+'</p>'
+    + '<h2>'+esc(cur.title)+'</h2><p class="focus">'+prettyDay(cur)+' · Day '+posIdx+' of '+seq.length+' · '+fmtMins(dayMinutes(cur))+'</p>'
     + '<div class="bar"><div style="width:'+Math.round(dn/seq.length*100)+'%"></div></div><div class="tiny dim">'+dn+' of '+seq.length+' days complete</div>'
     + (showingDone? '<p class="small" style="color:var(--ok);font-weight:700;margin-top:8px">✓ You finished this day today — every exercise below is checked off. '+(nxt? 'Next up: '+prettyDay(nxt)+'.' : '')+'</p>' : '')
     + '<p class="small dim" style="margin-top:8px">Tap an exercise name marked ▶ VIDEO to watch its demonstration video from the book.</p>'
@@ -394,7 +432,7 @@ function renderWeek(){
     h+='<div class="card">';
     for(let i=0;i<7;i++){
       const d=addDays(mon,i); const sess=coreSessionFor(d);
-      h+='<div class="dayrow"><span><strong>'+DAYNAMES[i]+'</strong> <span class="dim">'+d.slice(5)+'</span>'+(d===iso?' · today':'')+'</span><span>'+(sess? esc(sess.title) : '<span class="dim">Rest</span>')+(S.done[d]==='core'?' ✓':'')+'</span></div>';
+      h+='<div class="dayrow"><span><strong>'+DAYNAMES[i]+'</strong> <span class="dim">'+d.slice(5)+'</span>'+(d===iso?' · today':'')+'</span><span>'+(sess? esc(sess.title)+' <span class="dim">· ~'+sess.approxMinutes+' min</span>' : '<span class="dim">Rest</span>')+(S.done[d]==='core'?' ✓':'')+'</span></div>';
     }
     h+='</div>';
   } else {
@@ -404,7 +442,7 @@ function renderWeek(){
     h+='<div class="card"><h3>'+(cur? prettyDay(cur).split('·')[0].trim()+' · Week '+cur.week : 'Program complete')+'</h3>';
     for(let i=wkStart;i<Math.min(wkStart+7, seq.length);i++){
       const d=seq[i]; const st = S.btrDone[d.key] ? '✓ done' : (d===cur? '▶ today' : 'upcoming');
-      h+='<div class="dayrow"><span><strong>Day '+d.day+'</strong> · '+esc(d.title)+'</span><span class="dim">'+st+'</span></div>';
+      h+='<div class="dayrow"><span><strong>Day '+d.day+'</strong> · '+esc(d.title)+'</span><span class="dim">'+fmtMins(dayMinutes(d))+' · '+st+'</span></div>';
     }
     h+='</div>';
   }
@@ -429,7 +467,7 @@ function renderProgram(){
         h+='<details><summary>Week '+wk.week+'</summary><div class="inner">';
         for(const dy of wk.days){
           const key='p'+ph.phase+'w'+wk.week+'d'+dy.day;
-          h+='<details><summary>Day '+dy.day+' — '+esc(dy.title)+(S.btrDone[key]?' ✓':'')+'</summary><div class="inner">'
+          h+='<details><summary>Day '+dy.day+' — '+esc(dy.title)+' <span class="dim small">· '+fmtMins(dayMinutes(dy))+'</span>'+(S.btrDone[key]?' ✓':'')+'</summary><div class="inner">'
             + dy.exercises.map((e,i)=>'<div class="ex"><span class="num">'+(i+1)+'</span><div><div class="nm">'+exName(e)+'</div><div class="ds">'+esc(e.dose||'')+'</div></div></div>').join('')+'</div></details>';
         }
         h+='</div></details>';
@@ -468,7 +506,7 @@ function renderPlans(){
 }
 
 
-const APP_VERSION='1.4';
+const APP_VERSION='1.5';
 (function autoUpdateCheck(){
   try{
     if(new URLSearchParams(location.search).get('u')===APP_VERSION) return;
